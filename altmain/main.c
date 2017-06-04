@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <math.h>
 #include "GPS.h"
+#include <stm32f3_discovery_l3gd20.h>
+#include <stm32f3_discovery_lsm303dlhc.h>
+#include <stm32f3_discovery.h>
 /** @addtogroup STM32F3-Discovery_Demo
   * @{
   */
@@ -197,7 +200,7 @@ int main(void)
 	    Display_Heading(HeadingValue);
 		*/
 
-		PWMInput_Config3();
+		PWMInput_Config(0);
 		pwm_period = slow_init_pwm(700);
 		offset = 6800;
 		Set_Offset(&offset, &IN_CH1, &IN_CH2, &IN_CH4);
@@ -305,7 +308,7 @@ int main(void)
     //while(1);
 }
 
-void PWMInput_Config3()
+void PWMInput_Config(uint8_t channel)
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
@@ -451,20 +454,30 @@ void PWMInput_Config3()
     nvicStructure.NVIC_IRQChannelCmd = ENABLE;
     //NVIC_Init(&nvicStructure);
 
-    TIM_ClearITPendingBit(TIM4, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
-    TIM_ClearITPendingBit(TIM3, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
-    TIM_ClearITPendingBit(TIM8, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
-    TIM_ClearITPendingBit(TIM15, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
-
-    TIM_ITConfig(TIM4, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
-    TIM_ITConfig(TIM3, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
-    TIM_ITConfig(TIM8, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
-    TIM_ITConfig(TIM15, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
-
-    TIM_Cmd(TIM4, ENABLE);
-    TIM_Cmd(TIM3, ENABLE);
-    TIM_Cmd(TIM8, ENABLE);
-    TIM_Cmd(TIM15, ENABLE);
+    if (channel == 0)
+    {
+        TIM_ClearITPendingBit(TIM4, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
+        TIM_ITConfig(TIM4, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
+        TIM_Cmd(TIM4, ENABLE);
+    }
+    if (channel == 1)
+    {
+        TIM_ClearITPendingBit(TIM3, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
+        TIM_ITConfig(TIM3, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
+        TIM_Cmd(TIM3, ENABLE);
+    }
+    if (channel == 2)
+    {
+        TIM_ClearITPendingBit(TIM8, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
+        TIM_ITConfig(TIM8, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
+        TIM_Cmd(TIM8, ENABLE);
+    }
+    if (channel == 3)
+    {
+        TIM_Cmd(TIM15, ENABLE);
+        TIM_ITConfig(TIM15, TIM_IT_CC1|TIM_IT_CC2, ENABLE);
+        TIM_ClearITPendingBit(TIM15, TIM_IT_Update|TIM_IT_CC3|TIM_IT_CC4);
+    }
 }
 uint8_t get_location()
 {
